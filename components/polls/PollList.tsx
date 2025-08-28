@@ -1,4 +1,4 @@
-import PollCard from './PollCard';
+import PollCard from "./PollCard";
 
 const dummyPolls = [
   {
@@ -29,10 +29,13 @@ const dummyPolls = [
 
 export default function PollList() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {dummyPolls.map((poll) => (
         <PollCard key={poll.id} poll={poll} />
       ))}
     </div>
   );
 }
+
+// Fetch actual poll data here in a real application
+// For now, we are using dummy data.

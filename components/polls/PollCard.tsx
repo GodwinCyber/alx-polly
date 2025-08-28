@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 
 interface PollProps {
@@ -15,17 +15,13 @@ interface PollProps {
 export default function PollCard({ poll }: PollProps) {
   return (
     <Link href={`/polls/${poll.id}`}>
-      <Card className="hover:shadow-lg transition cursor-pointer h-full">
-        <CardHeader>
-          <CardTitle>{poll.title}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+      <Card className="shadow-sm border border-slate-200">
+        <CardContent className="p-5 space-y-1">
+          <h2 className="font-semibold text-base text-black">{poll.title}</h2>
           <p className="text-sm text-muted-foreground">{poll.description}</p>
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{poll.options} options</span>
-            <span>{poll.votes} total votes</span>
-          </div>
-          <p className="text-xs text-muted-foreground pt-2">
+          <p className="text-sm text-slate-600 mt-2">{poll.options} options</p>
+          <p className="text-sm text-slate-600">{poll.votes} total votes</p>
+          <p className="text-xs text-slate-400 pt-2">
             Created on {new Date(poll.createdAt).toLocaleDateString()}
           </p>
         </CardContent>

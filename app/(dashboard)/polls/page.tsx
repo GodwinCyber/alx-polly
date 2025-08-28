@@ -4,14 +4,12 @@ import Link from "next/link";
 
 export default function PollsPage() {
   return (
-    <main className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Polls</h1>
-        <Button asChild>
-          <Link href="/create">Create New Poll</Link>
-        </Button>
+    <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-8">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold text-black">My Polls</h1>
+        <Button>Create New Poll</Button>
       </div>
       <PollList />
-    </main>
+    </div>
   );
 }
