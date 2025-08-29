@@ -1,41 +1,24 @@
+import { getPolls } from "@/lib/actions/polls";
 import PollCard from "./PollCard";
+import { PollWithOptions } from "@/lib/types";
 
-const dummyPolls = [
-  {
-    id: "1",
-    title: "Favorite Programming Language",
-    description: "What programming language do you prefer to use?",
-    options: 5,
-    votes: 42,
-    createdAt: "2023-10-15",
-  },
-  {
-    id: "2",
-    title: "Best Frontend Framework",
-    description: "Which frontend framework do you think is the best?",
-    options: 4,
-    votes: 38,
-    createdAt: "2023-10-10",
-  },
-  {
-    id: "3",
-    title: "Preferred Database",
-    description: "What database do you prefer to work with?",
-    options: 5,
-    votes: 27,
-    createdAt: "2023-10-05",
-  },
-];
+export default async function PollList() {
+  const polls: PollWithOptions[] = await getPolls();
 
-export default function PollList() {
+  if (polls.length === 0) {
+    return (
+      <div className="text-center text-gray-500">
+        <p>No polls found.</p>
+        <p>Create a new poll to get started!</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {dummyPolls.map((poll) => (
+    <div className="space-y-4">
+      {polls.map((poll) => (
         <PollCard key={poll.id} poll={poll} />
       ))}
     </div>
   );
 }
-
-// Fetch actual poll data here in a real application
-// For now, we are using dummy data.

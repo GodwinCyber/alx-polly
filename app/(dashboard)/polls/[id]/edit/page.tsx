@@ -1,119 +1,143 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getPoll, updatePoll } from "@/lib/actions/polls";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import type { Poll, PollOption } from "@/lib/types/polls";
 
-const poll = {
-  id: "1",
-  title: "Favorite Programming Language",
-  description: "What programming language do you prefer to use?",
-  options: ["JavaScript", "Python", "Java", "C#", "Go"],
-  allowMultipleOptions: false,
-  requireLogin: true,
-  endDate: "",
+type PollWithWithOptions = Poll & {
+  poll_options: PollOption[];
 };
 
-export default function EditPollPage() {
-  const [options, setOptions] = useState(poll.options);
+export default function EditPollPage({ params }: { params: { id: string } }) {
+  const [poll, setPoll] = useState<PollWithWithOptions | null>(null);
+  const [question, setQuestion] = useState("");
+  const [options, setOptions] = useState<PollOption[]>([]);
+  const router = useRouter();
 
-  const addOption = () => {
-    setOptions([...options, `Option ${options.length + 1}`]);
+  useEffect(() => {
+    const fetchPoll = async () => {
+      const pollData = await getPoll(params.id);
+      if (pollData) {
+        setPoll(pollData);
+        setQuestion(pollData.question);
+        setOptions(pollData.poll_options);
+        console.log("Fetched poll options:", pollData.poll_options);
+      } else {
+        toast.error("Poll not found.");
+        router.push("/polls");
+      }
+    };
+    fetchPoll();
+  }, [params.id, router]);
+
+  const handleAddOption = () => {
+    setOptions([...options, { id: `_new_${Date.now()}`, text: "" }]);
   };
 
+  const handleRemoveOption = (index: number) => {
+    if (options.length > 2) {
+      const newOptions = options.slice();
+      newOptions.splice(index, 1);
+      setOptions(newOptions);
+    }
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index].text = value;
+    setOptions(newOptions);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Manually construct the data object to match the updatePoll signature
+    const dataToSend = {
+      question,
+      options: options.map((option) => ({
+        id: option.id,
+        text: option.text,
+      })),
+    };
+
+    const result = await updatePoll(params.id, dataToSend);
+
+    if (result.success) {
+      toast.success("Poll edited successfully!");
+      router.push("/polls");
+    } else {
+      toast.error(result.error || "Failed to edit poll.");
+    }
+  };
+
+  if (!poll) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-3xl">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Edit Poll</h1>
-          <Button variant="outline" asChild>
-            <Link href={`/polls/${poll.id}`}>Cancel</Link>
-          </Button>
-        </div>
-        <Tabs defaultValue="basic">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
-          <TabsContent value="basic">
-            <Card>
-              <CardHeader>
-                <CardTitle>Poll Information</CardTitle>
-                <CardDescription>
-                  Update the details for your poll
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Poll Title</Label>
-                  <Input id="title" defaultValue={poll.title} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (Optional)</Label>
+    <div className="flex justify-center items-center min-h-screen">
+      <Card className="w-full max-w-lg">
+        <CardHeader>
+          <CardTitle>Edit Poll</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="question">Poll Question</Label>
+              <Input
+                id="question"
+                name="question"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label>Options</Label>
+              {options.map((option, index) => (
+                <div
+                  key={option.id}
+                  className="flex items-center space-x-2 mb-2"
+                >
                   <Input
-                    id="description"
-                    defaultValue={poll.description}
+                    name={`option-id-${index}`}
+                    type="hidden"
+                    value={option.id}
                   />
+                  <Input
+                    name="option"
+                    placeholder={`Option ${index + 1}`}
+                    value={option.text}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    required
+                  />
+                  {options.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => handleRemoveOption(index)}
+                    >
+                      Remove
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label>Poll Options</Label>
-                  {options.map((option, index) => (
-                    <Input key={index} defaultValue={option} />
-                  ))}
-                </div>
-                <Button variant="outline" onClick={addOption}>
-                  Add Option
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Poll Settings</CardTitle>
-                <CardDescription>
-                  Configure additional options for your poll
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="multiple-options" defaultChecked={poll.allowMultipleOptions} />
-                  <Label htmlFor="multiple-options">
-                    Allow users to select multiple options
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="require-login" defaultChecked={poll.requireLogin} />
-                  <Label htmlFor="require-login">
-                    Require users to be logged in to vote
-                  </Label>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end-date">Poll End Date (Optional)</Label>
-                  <Input id="end-date" defaultValue={poll.endDate} />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        <div className="mt-6 flex justify-end">
-          <Button>Save Changes</Button>
-        </div>
-      </div>
-       <footer className="text-center text-sm text-muted-foreground mt-8">
-        © 2025 ALX Polly. All rights reserved.
-      </footer>
+              ))}
+              <Button type="button" onClick={handleAddOption} variant="outline">
+                Add Option
+              </Button>
+            </div>
+            <Button type="submit" className="w-full">
+              Save Changes
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

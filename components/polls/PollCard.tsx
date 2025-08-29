@@ -1,31 +1,35 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { PollWithOptions } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import DeleteButton from "./DeleteButton";
 
-interface PollProps {
-  poll: {
-    id: string;
-    title: string;
-    description: string;
-    options: number;
-    votes: number;
-    createdAt: string;
-  };
-}
-
-export default function PollCard({ poll }: PollProps) {
+export default function PollCard({ poll }: { poll: PollWithOptions }) {
   return (
-    <Link href={`/polls/${poll.id}`}>
-      <Card className="shadow-sm border border-slate-200">
-        <CardContent className="p-5 space-y-1">
-          <h2 className="font-semibold text-base text-black">{poll.title}</h2>
-          <p className="text-sm text-muted-foreground">{poll.description}</p>
-          <p className="text-sm text-slate-600 mt-2">{poll.options} options</p>
-          <p className="text-sm text-slate-600">{poll.votes} total votes</p>
-          <p className="text-xs text-slate-400 pt-2">
-            Created on {new Date(poll.createdAt).toLocaleDateString()}
-          </p>
-        </CardContent>
-      </Card>
-    </Link>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{poll.question}</CardTitle>
+        {poll.isOwner && (
+          <div className="flex items-center space-x-2">
+            <Link href={`/polls/${poll.id}/edit`}>
+              <Button variant="outline" size="sm">
+                Edit
+              </Button>
+            </Link>
+            <DeleteButton pollId={poll.id} />
+          </div>
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {poll.poll_options.map((option) => (
+            <div key={option.id} className="flex items-center justify-between">
+              <p>{option.text}</p>
+              {/* Add voting logic here in the future */}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -7,7 +7,9 @@ export default function PollsPage() {
     <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold text-black">My Polls</h1>
-        <Button>Create New Poll</Button>
+        <Link href="/create">
+          <Button>Create New Poll</Button>
+        </Link>
       </div>
       <PollList />
     </div>
